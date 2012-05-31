@@ -1,0 +1,50 @@
+7. Algorithms
+
+Following the lead of the IETF with it's 'JOSE' JSON Web Algorithms (JWA), this API will benefit from using the same algorithm identifiers:
+
+HMAC and Signature algorithms
+
+HS256
+    HMAC using SHA-256 hash algorithm
+HS384
+    HMAC using SHA-384 hash algorithm
+HS512
+    HMAC using SHA-512 hash algorithm
+RS256
+    RSA using SHA-256 hash algorithm
+RS384
+    RSA using SHA-384 hash algorithm
+RS512
+    RSA using SHA-512 hash algorithm
+ES256
+    ECDSA using P-256 curve and SHA-256 hash algorithm
+ES384
+    ECDSA using P-384 curve and SHA-384 hash algorithm
+ES512
+    ECDSA using P-521 curve and SHA-512 hash algorithm
+none
+    No digital signature or MAC value included
+
+Key Encryption or Agreement Algorithms
+
+RSA1_5
+    RSA using RSA-PKCS1-1.5 padding, as defined in RFC 3447
+RSA-OAEP
+    RSA using Optimal Asymmetric Encryption Padding (OAEP), as defined in RFC 3447
+ECDH-ES
+    Elliptic Curve Diffie-Hellman Ephemeral Static, as defined in RFC 6090 [RFC6090], and using the Concat KDF, as defined in Section 5.8.1 of [NIST.800-56A], where the Digest Method is SHA-256 and all OtherInfo parameters are the empty bit string
+A128KW
+    Advanced Encryption Standard (AES) Key Wrap Algorithm using 128 bit keys, as defined in RFC 3394
+A256KW
+    Advanced Encryption Standard (AES) Key Wrap Algorithm using 256 bit keys, as defined in RFC 3394
+
+Block Encryption Algorithm
+
+A128CBC
+    Advanced Encryption Standard (AES) using 128 bit keys in Cipher Block Chaining (CBC) mode using PKCS #5 padding, as defined in [FIPS.197] and [NIST.800-38A]
+A256CBC
+    Advanced Encryption Standard (AES) using 256 bit keys in Cipher Block Chaining (CBC) mode using PKCS #5 padding, as defined in [FIPS.197] and [NIST.800-38A]
+A128GCM
+    Advanced Encryption Standard (AES) using 128 bit keys in Galois/Counter Mode (GCM), as defined in [FIPS.197] and [NIST.800-38D]
+A256GCM
+    Advanced Encryption Standard (AES) using 256 bit keys in Galois/Counter Mode (GCM), as defined in [FIPS.197] and [NIST.800-38D] 
