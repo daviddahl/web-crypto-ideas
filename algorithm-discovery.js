@@ -5,6 +5,11 @@
 window.crypto.sym.algorithms.blockenc;
 // returns array of strings: ["A128CBC", "A256CBC", "A128GCM","A256GCM"]
 
+// ** Bulk Encryption **
+
+window.crypto.pk.algorithms.bulkenc;
+// returns array of strings: ["A128CBC", "A256CBC", "A128GCM","A256GCM"]
+
 // ** Key Agreement / Encryption **
 
 window.crypto.pk.algorithms.keyenc;
