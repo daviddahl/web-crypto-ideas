@@ -29,3 +29,8 @@ window.crypto.hmac.algorithms;
 
 window.crypto.hash.algorithms;
 // returns array of strings: ["MD5", "SHA1", "SHA2"]
+
+// Algorithm Discovery function:
+
+window.crypto.discover("A128CBC");
+// returns true
