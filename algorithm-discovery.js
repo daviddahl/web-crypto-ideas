@@ -2,7 +2,7 @@
 
 // ** Block Encryption **
 
-window.crypto.pk.algorithms.blockenc;
+window.crypto.sym.algorithms.blockenc;
 // returns array of strings: ["A128CBC", "A256CBC", "A128GCM","A256GCM"]
 
 // ** Key Agreement / Encryption **
