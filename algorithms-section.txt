@@ -1,6 +1,6 @@
 7. Algorithms
 
-Following the lead of the IETF with it's 'JOSE' JSON Web Algorithms (JWA), this API will benefit from using the same algorithm identifiers:
+Following the lead of the IETF with it's 'JOSE' JSON Web Algorithms (JWA), this API will benefit from using the same algorithm identifiers. 
 
 HMAC and Signature algorithms
 
