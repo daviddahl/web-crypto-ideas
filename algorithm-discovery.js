@@ -2,7 +2,12 @@
 
 // ** Block Encryption **
 
-window.crypto.pk.algorithms.blockenc;
+window.crypto.sym.algorithms.blockenc;
+// returns array of strings: ["A128CBC", "A256CBC", "A128GCM","A256GCM"]
+
+// ** Bulk Encryption **
+
+window.crypto.pk.algorithms.bulkenc;
 // returns array of strings: ["A128CBC", "A256CBC", "A128GCM","A256GCM"]
 
 // ** Key Agreement / Encryption **
@@ -24,3 +29,8 @@ window.crypto.hmac.algorithms;
 
 window.crypto.hash.algorithms;
 // returns array of strings: ["MD5", "SHA1", "SHA2"]
+
+// Algorithm Discovery function:
+
+window.crypto.discover("A128CBC");
+// returns true
