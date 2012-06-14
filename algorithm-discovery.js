@@ -3,32 +3,37 @@
 // ** Block Encryption **
 
 window.crypto.sym.algorithms.blockenc;
-// returns array of strings: ["A128CBC", "A256CBC", "A128GCM","A256GCM"]
+// returns an object:
+{ A128CBC: true, A256CBC: true, A128GCM: false, A256GCM: false }
 
 // ** Bulk Encryption **
 
 window.crypto.pk.algorithms.bulkenc;
-// returns array of strings: ["A128CBC", "A256CBC", "A128GCM","A256GCM"]
+// returns an object:
+{ A128CBC: true, A256CBC: true, A128GCM: false, A256GCM: false }
 
 // ** Key Agreement / Encryption **
 
 window.crypto.pk.algorithms.keyenc;
-// returns array of strings: ["RSA1_5", "RSA-OAEP", "ECDH-ES", "A128KW", "A256KW"]
+// returns an object:
+{ RSA1_5: true, "RSA-OAEP": true, "ECDH-ES": false , A128KW: true, A256KW: true }
 
 // ** Signature algorithms **
 
 window.crypto.sign.algorithms;
-// returns array of strings: ["RS256", "RS384", "RS512", "ES256", "ES384", "ES512"]
+// returns an object:
+{ RS256: true, RS384: true , RS512: true, ES256: false, ES384: false , ES512: false }
 
 // ** HMAC **
 
 window.crypto.hmac.algorithms;
-// returns array of strings: ["HS256", "HS384", "HS512"]
+// returns an object: { HS256: true, HS384: true, HS512: true }
 
 // ** Hash **
 
 window.crypto.hash.algorithms;
-// returns array of strings: ["MD5", "SHA1", "SHA2"]
+// returns an object:
+{ MD5: true, SHA1: true, SHA2: true }
 
 // Algorithm Discovery function:
 
