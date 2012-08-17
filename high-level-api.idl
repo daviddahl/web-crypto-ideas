@@ -1,0 +1,37 @@
+
+[NoInterfaceObject]
+interface Keypair {
+  readonly attribute DOMString publicKey;
+  readonly attribute DOMString id;
+};
+
+[NoInterfaceObject]
+interface HighLevel {
+
+  void getKeypair(DOMString id?);
+  [TreatNonCallableAsNull] attribute Function? onGetKeypair;
+  void createKeyPair(); // XXX: array arg to indicate domain usage?
+  [TreatNonCallableAsNull] attribute Function? onCreateKeypair;
+
+  void encryptAndSign(ArrayBuffer clearData, DOMString publicKey);
+  [TreatNonCallableAsNull] attribute Function? onEncryptComplete;
+  [TreatNonCallableAsNull] attribute Function? onEncryptError;
+
+  void verifyAndDecrypt(ArrayBuffer cipherData, DOMString keypairID);
+  [TreatNonCallableAsNull] attribute Function? onDecryptComplete;
+  [TreatNonCallableAsNull] attribute Function? onDecryptError;
+
+  void sign(ArrayBuffer clearData, DOMString keypairID);
+  [TreatNonCallableAsNull] attribute Function? onSignComplete;
+  [TreatNonCallableAsNull] attribute Function? onSignError;
+
+  void verify(ArrayBuffer signature, ArrayBuffer data, DOMString publicKey);
+  [TreatNonCallableAsNull] attribute Function? onSignComplete;
+  [TreatNonCallableAsNull] attribute Function? onSignError;
+
+  void hash(ArrayBuffer data);
+  [TreatNonCallableAsNull] attribute Function? onHashComplete;
+  [TreatNonCallableAsNull] attribute Function? onHashError;
+
+  // TODO: MAC
+};
