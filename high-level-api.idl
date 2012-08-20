@@ -1,27 +1,29 @@
 
 [NoInterfaceObject]
-interface Keypair {
-  readonly attribute DOMString publicKey;
+interface publicKey {
+  readonly attribute DOMString publicKey; // use with High-Level API
   readonly attribute DOMString id;
+  Key getPublicKey(); // use with Low-level API?
+  // The publicKey always implies a private key is bound to it behind the scenes
 };
 
 [NoInterfaceObject]
 interface HighLevel {
 
-  void getKeypair(DOMString id?);
+  void getPublicKey(DOMString id?);
   [TreatNonCallableAsNull] attribute Function? onGetKeypair;
-  void createKeyPair(); // XXX: array arg to indicate domain usage?
+  void createKeyPair(); // ISSUE: array argument to indicate X-Domain usage?
   [TreatNonCallableAsNull] attribute Function? onCreateKeypair;
 
   void encryptAndSign(ArrayBuffer clearData, DOMString publicKey);
   [TreatNonCallableAsNull] attribute Function? onEncryptComplete;
   [TreatNonCallableAsNull] attribute Function? onEncryptError;
 
-  void verifyAndDecrypt(ArrayBuffer cipherData, DOMString keypairID);
+  void verifyAndDecrypt(ArrayBuffer cipherData, DOMString publicKeyID);
   [TreatNonCallableAsNull] attribute Function? onDecryptComplete;
   [TreatNonCallableAsNull] attribute Function? onDecryptError;
 
-  void sign(ArrayBuffer clearData, DOMString keypairID);
+  void sign(ArrayBuffer clearData, DOMString publicKeyID);
   [TreatNonCallableAsNull] attribute Function? onSignComplete;
   [TreatNonCallableAsNull] attribute Function? onSignError;
 
