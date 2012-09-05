@@ -79,42 +79,86 @@ window.keys.removeKeyById(encryptionKey.id);
 var encryptionKey = window.keys.getKeyById("my-favorite-crypto-key-id-for-this-origin");
 
 ////////////////////////////////////////////////////////////////////////////////////////
-// Encryption                                                                         //
+// PGP Style Encryption                                                               //
 ////////////////////////////////////////////////////////////////////////////////////////
 
-var encrypter = window.crypto.createEncrypter(algorithm, encryptionKey);
+// Assumed variables in this scope:
+// var secretMessageToAlice = anArrayBufferView;
+// var alicePubKey = aJWKFormattedPublicKey;
 
-encrypter.oncomplete = function encypter_oncomplete(event)
-{
-  console.log("Encryption operation complete, ArrayBuffer result: " + event.target.result);
-  // Now the encrypted data can be sent to a server or postMessage'd to another window, etc.
+var aesAlgorithm = {
+  name: "AES-CBC",
+  params: {
+    iv: "NjAwNzY3ODgzOTg0NjEzOA=="
+  }
 };
 
-encrypter.oninit = function encrypter_init(event)
-{
-  console.log("Encrypter object initialized");
-};
+// Create a keygenerator to produce a one-time-use AES key to encrypt some data
+var cryptoKeyGen = window.crypto.createKeyGenerator(aesAlgorithm,
+                                                    false, // temporary
+                                                    false, // extractable
+                                                    ["encrypt"]);
 
-encrypter.onerorr = function encrypter_onerror(event)
+cryptoKeyGen.oncomplete = function ckg_onComplete(event)
 {
-  console.error("Encryption operation failed:(");
-};
 
-encrypter.onabort = function encrypter_abort(event)
-{
-  console.error("Encryption operation aborted!");
-};
+  var aesKeyId = event.target.key.id; // Key id
+  var aesKey = window.crypto.keys.getKeyByKeyId(aesKeyId);
 
-encrypter.progress = function encrypter_progress(event)
-{
-  console.log("Encrypter object has progress!");
-};
+  // Import Alice's RSAES-PKCS1-v1_5 Public Key to be used to wrap this AES
+  var alicePubKeyAlg = {
+    name: "RSAES-PKCS1-v1_5",
+    // AlgorithmParams
+    params: {
+      modulusLength: 2048,
+      publicExponent: 65537
+    }
+  };
 
-// Begin the encryption operation:
-encrypter.init();
-// myClearData is a JS ArrayBuffer View
-encrypter.processData(myClearData);
-encrypter.complete();
+  var publicKeyImporter = window.crypto.createKeyImporter("jwk",
+                                                          alicePublicKey, // ArrayBufferView
+                                                          alicePubKeyAlg,
+                                                          false,
+                                                          true,
+                                                          ["encrypt"]);
+
+  publicKeyImporter.oncomplete = function pki_oncomplete(event)
+  {
+    var keyId = event.target.result; // or is this a Key Object?
+
+    var alicePubKey = window.keys.getKeyById(keyId);
+
+    var pubKeyCryptoOp = window.crypto.createEncrypter(alicePubKeyAlg, alicePubKey);
+
+    var aesSymmetricCryptoOp = window.crypto.createEncrypter(aesAlgorithm, aesKey);
+
+    aesSymmetricCryptoOp.oncomplete = function aes_oncomplete(event)
+    {
+      // the message have been encrypted
+      var cipherMessage = event.target.result; // ArrayBufferView
+
+      // Now, we need to wrap the AES key with Alice's public key
+      pubKeyCryptoOp.oncomplete = function pkco_oncomplete(event)
+      {
+        var wrappedKey = event.target.result;
+        // Now we can send the cipherMessage and wrappedKey to Alice
+        // sendMessage(cipherMessage, wrappedKey); // Ficticious application function
+      };
+      pubKeyCryptoOp.init();
+      pubKeyCryptoOp.processData(secretMessageToAlice);
+      pubKeyCryptoOp.complete();
+
+    };
+
+    //  TODO: missing message signature
+    aesSymmetricCryptoOp.init();
+    aesSymmetricCryptoOp.processData(secretMessageToAlice);
+    aesSymmetricCryptoOp.complete();
+  };
+
+  publicKeyImporter.import();
+
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
