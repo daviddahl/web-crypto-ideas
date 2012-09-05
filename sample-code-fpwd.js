@@ -2,11 +2,6 @@
 // W3C Web Cryptography API example JS code, 2012-09-04                             //
 //////////////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////
-// Generate a signing key pair //
-/////////////////////////////////
-
 /**
     The Web Cryptography API operates on ArrayBufferView arguments and enables:
 
@@ -33,10 +28,13 @@
 var secretMessage = "53kr3t M355ag3 for A1ic3";
 
 // Convert this to a Uint16Array
-
+ 
 var myData = toArrayBufferView(secretMessage);
 
 
+////////////////////////////////////////////////////////////////////////////////////
+// Generate a signing key pair, sign some data                                    //
+////////////////////////////////////////////////////////////////////////////////////
 
 // Algorithm Object
 var algorithm = {
@@ -107,10 +105,10 @@ keyGen.generate();
 
 var encryptionKey = window.keys.getKeyById("one-of-my-crypto-key-ids-for-this-origin");
 
-// Whoops, that key is stale, I should remove it:
+// This key is no longer needed, I should remove it:
 window.keys.removeKeyById(encryptionKey.id);
 
-var encryptionKey = window.keys.getKeyById("my-favorite-crypto-key-id-for-this-origin");
+var otherEncryptionKey = window.keys.getKeyById("another-crypto-key-id-for-this-origin");
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // PGP Style Encryption                                                               //
@@ -191,7 +189,6 @@ cryptoKeyGen.oncomplete = function ckg_onComplete(event)
   };
 
   publicKeyImporter.import();
-
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////
