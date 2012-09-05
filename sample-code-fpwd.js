@@ -2,9 +2,41 @@
 // W3C Web Cryptography API example JS code, 2012-09-04                             //
 //////////////////////////////////////////////////////////////////////////////////////
 
+
 /////////////////////////////////
 // Generate a signing key pair //
 /////////////////////////////////
+
+/**
+    The Web Cryptography API operates on ArrayBufferView arguments and enables:
+
+    1. Signing
+    2. Encryption
+    3. Digests
+    4. Verification
+    5. Decryption
+
+    Such ArrayBufferView arguments can be generated as part of application data
+    or be obtained from ancillary sources, such as the underlying file system or
+    web storage.
+
+    If using the underlying file system, data can be read asynchronously as an
+    ArrayBuffer using the File API and the resulting ArrayBuffer can be converted
+    to an ArrayBufferView.
+
+    The examples in this section presume a secret message which is converted to
+    an ArrayBufferView, although these examples can also apply to ArrayBufferView
+    payloads from the underlying file system or web storage.
+
+**/
+
+var secretMessage = "53kr3t M355ag3 for A1ic3";
+
+// Convert this to a Uint16Array
+
+var myData = toArrayBufferView(secretMessage);
+
+
 
 // Algorithm Object
 var algorithm = {
@@ -40,6 +72,8 @@ keyGen.oncomplete = function onKeyGenComplete(event)
   // Sign some data:
   signer.init();
   // myDataToSign is a JS ArrayBufferView
+  var myDataToSign = myData;
+
   signer.processData(myDataToSign);
   signer.complete();
 };
@@ -56,7 +90,7 @@ keyGen.onerror = function onKeyGenError(event)
 
 keyGen.onabort = function onKeyGenAbort(event)
 {
-  console.error("KeyGen abort: " + error.taget.error);
+  console.error("KeyGen abort: " + event.target.error);
 };
 
 keyGen.onprogress = function onKeyGenProgress(event)
@@ -160,8 +194,22 @@ cryptoKeyGen.oncomplete = function ckg_onComplete(event)
 
 };
 
+////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions                                                                  //
+////////////////////////////////////////////////////////////////////////////////////////
+/**
 
-////////////////////////////////////////////////////////////////////////////////////////
-// Decrypt data                                                                       //
-////////////////////////////////////////////////////////////////////////////////////////
+This is very simple synchronous conversion of strings to Uint16Array.
+This utility will miss certain UTF-8 or UTF-16 character sequences.
+
+**/
+function toArrayBufferView(str) {
+  var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+  var bufView = new Uint16Array(buf);
+  for (var i=0, strLen=str.length; i<strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return bufView;
+}
+
 
