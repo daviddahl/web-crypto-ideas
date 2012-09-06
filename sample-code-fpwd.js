@@ -27,9 +27,9 @@
 
 var secretMessage = "53kr3t M355ag3 for A1ic3";
 
-// Convert this to a Uint16Array
- 
-var myData = toArrayBufferView(secretMessage);
+// Convert this to an ArrayBufferView with assumed utility function 'toArrayBufferView'
+
+var myData = toArrayBufferView(secretMessage); // TODO: add a 'utility function' section
 
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -37,8 +37,8 @@ var myData = toArrayBufferView(secretMessage);
 ////////////////////////////////////////////////////////////////////////////////////
 
 // Algorithm Object
-var algorithm = {
-  name: "RSAES-PKCS1-v1_5",
+var algorithmKeyGen = {
+  name: "RSASSA-PKCS1-v1_5",
   // AlgorithmParams
   params: {
     modulusLength: 2048,
@@ -46,7 +46,15 @@ var algorithm = {
   }
 };
 
-var keyGen = window.crypto.createKeyGenerator(algorithm,
+var algorithmSign = {
+  name: "RSASSA-PKCS1-v1_5",
+  // AlgorithmParams
+  params: {
+    hash: "SHA-256 algorithm alias"
+  }
+};
+
+var keyGen = window.crypto.createKeyGenerator(algorithmKeyGen,
                                               false, // temporary
                                               false, // extractable
                                               ["sign"]);
@@ -57,7 +65,7 @@ keyGen.oncomplete = function onKeyGenComplete(event)
   console.log("Key ID: " + event.target.key.id);
 
   // create a "signer" CryptoOperation object
-  var signer = window.crypto.createSigner(algorithm, event.target.key);
+  var signer = window.crypto.createSigner(algorithmSign, event.target.key);
   signer.oncomplete = function signer_oncomplete(event)
   {
     console.log("The signer CryptoOperation is finished, the signature is: " +
@@ -67,18 +75,19 @@ keyGen.oncomplete = function onKeyGenComplete(event)
   {
     console.log("The signer CryptoOperation failed");
   };
+
+  signer.oninit = function signer_oninit(event)
+  {
+    signer.processData(myData);
+  };
+
+  signer.progress = function signer_onprogress(event)
+  {
+    signer.complete();
+  };
+
   // Sign some data:
   signer.init();
-  // myDataToSign is a JS ArrayBufferView
-  var myDataToSign = myData;
-
-  signer.processData(myDataToSign);
-  signer.complete();
-};
-
-keyGen.oninit = function onKeyGenInit(event)
-{
-  console.log("KeyGen CryptoOperation object is initialized");
 };
 
 keyGen.onerror = function onKeyGenError(event)
@@ -86,22 +95,12 @@ keyGen.onerror = function onKeyGenError(event)
   console.error("KeyGen error: " + event.target.error); // is this correct? event.target.error?
 };
 
-keyGen.onabort = function onKeyGenAbort(event)
-{
-  console.error("KeyGen abort: " + event.target.error);
-};
-
-keyGen.onprogress = function onKeyGenProgress(event)
-{
-  console.error("KeyGen Progress!");
-};
-
 // Generate the keypair, the key object is available inside the oncomplete handler
 keyGen.generate();
 
-////////////////////////////////////////////////////////////////////////////////////////
-// Key Storage                                                                        //
-////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+// Key Storage                                                                    //
+////////////////////////////////////////////////////////////////////////////////////
 
 var encryptionKey = window.keys.getKeyById("one-of-my-crypto-key-ids-for-this-origin");
 
@@ -110,40 +109,47 @@ window.keys.removeKeyById(encryptionKey.id);
 
 var otherEncryptionKey = window.keys.getKeyById("another-crypto-key-id-for-this-origin");
 
-////////////////////////////////////////////////////////////////////////////////////////
-// PGP Style Encryption                                                               //
-////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+// PGP Style Encryption                                                           //
+////////////////////////////////////////////////////////////////////////////////////
 
 // Assumed variables in this scope:
 // var secretMessageToAlice = anArrayBufferView;
 // var alicePubKey = aJWKFormattedPublicKey;
 
-var aesAlgorithm = {
+var aesAlgorithmKeyGen = {
   name: "AES-CBC",
   params: {
-    iv: "NjAwNzY3ODgzOTg0NjEzOA=="
+    length: 128
+  }
+};
+
+var aesAlgorithmEncrypt = {
+  name: "AES-CBC",
+  params: {
+    iv: window.crypto.getRandomValues(myArrayBufferView)
   }
 };
 
 // Create a keygenerator to produce a one-time-use AES key to encrypt some data
-var cryptoKeyGen = window.crypto.createKeyGenerator(aesAlgorithm,
+var cryptoKeyGen = window.crypto.createKeyGenerator(aesAlgorithmKeyGen,
                                                     false, // temporary
                                                     false, // extractable
                                                     ["encrypt"]);
 
 cryptoKeyGen.oncomplete = function ckg_onComplete(event)
 {
+  // Optionally get the keyId and key via the id:
+  // var aesKeyId = event.target.key.id; // Key id
+  // var aesKey = window.crypto.keys.getKeyByKeyId(aesKeyId);
 
-  var aesKeyId = event.target.key.id; // Key id
-  var aesKey = window.crypto.keys.getKeyByKeyId(aesKeyId);
+  var aesKey = event.target.key;
 
   // Import Alice's RSAES-PKCS1-v1_5 Public Key to be used to wrap this AES
   var alicePubKeyAlg = {
     name: "RSAES-PKCS1-v1_5",
     // AlgorithmParams
     params: {
-      modulusLength: 2048,
-      publicExponent: 65537
     }
   };
 
@@ -156,13 +162,11 @@ cryptoKeyGen.oncomplete = function ckg_onComplete(event)
 
   publicKeyImporter.oncomplete = function pki_oncomplete(event)
   {
-    var keyId = event.target.result; // or is this a Key Object?
-
-    var alicePubKey = window.keys.getKeyById(keyId);
+    var alicePubKey = event.target.result;
 
     var pubKeyCryptoOp = window.crypto.createEncrypter(alicePubKeyAlg, alicePubKey);
 
-    var aesSymmetricCryptoOp = window.crypto.createEncrypter(aesAlgorithm, aesKey);
+    var aesSymmetricCryptoOp = window.crypto.createEncrypter(aesAlgorithmEncrypt, aesKey);
 
     aesSymmetricCryptoOp.oncomplete = function aes_oncomplete(event)
     {
@@ -172,41 +176,56 @@ cryptoKeyGen.oncomplete = function ckg_onComplete(event)
       // Now, we need to wrap the AES key with Alice's public key
       pubKeyCryptoOp.oncomplete = function pkco_oncomplete(event)
       {
-        var wrappedKey = event.target.result;
-        // Now we can send the cipherMessage and wrappedKey to Alice
-        // sendMessage(cipherMessage, wrappedKey); // Ficticious application function
+        var wrappingKey = event.target.result;
+        // Now we can send the cipherMessage and wrappingKey to Alice
+        // sendMessage(cipherMessage, wrappingKey); // Ficticious application function
       };
-      pubKeyCryptoOp.init();
-      pubKeyCryptoOp.processData(secretMessageToAlice);
-      pubKeyCryptoOp.complete();
+      // Begin key wrapping operation
+      pubKeyCryptoOp.oninit = function pkco_oninit(event)
+      {
+        // Provide the aesKey...
+        // TODO: Key needs to be exported first to convert to an ArrayBufferView
+        // var aesKeyAsBuffer = keyToArrayBufferView(aesKey);
+        pubKeyCryptoOp.processData(aesKeyAsBuffer);
+      };
 
+      pubKeyCryptoOp.onprogress = function pkci_onprogress(event)
+      {
+        pubKeyCryptoOp.complete();
+      };
+
+      pubKeyCryptoOp.onerror = function pkci_onerror(event)
+      {
+        console.error("PublicKey wrapping operation failed");
+      };
+
+      // Begin wrapping operation of the aesKey
+      pubKeyCryptoOp.init();
     };
 
-    //  TODO: missing message signature
+    aesSymmetricCryptoOp.oninit = function aes_oninit(event)
+    {
+      aesSymmetricCryptoOp.processData(secretMessageToAlice);
+    };
+
+    aesSymmetricCryptoOp.onprogress = function aes_onprogress(event)
+    {
+      aesSymmetricCryptoOp.complete();
+    };
+
+    aesSymmetricCryptoOp.onerror = function aes_onerror(event)
+    {
+      console.error("AES encryption failed");
+    };
+
     aesSymmetricCryptoOp.init();
-    aesSymmetricCryptoOp.processData(secretMessageToAlice);
-    aesSymmetricCryptoOp.complete();
   };
 
+  publicKeyImporter.onerror = function pki_onerror(event)
+  {
+    console.error("There was an error attempting to import a key");
+  };
+  // Everything begins here as a recipient's key must be imported into the
+  // key store to be used
   publicKeyImporter.import();
 };
-
-////////////////////////////////////////////////////////////////////////////////////////
-// Utility functions                                                                  //
-////////////////////////////////////////////////////////////////////////////////////////
-/**
-
-This is very simple synchronous conversion of strings to Uint16Array.
-This utility will miss certain UTF-8 or UTF-16 character sequences.
-
-**/
-function toArrayBufferView(str) {
-  var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
-  var bufView = new Uint16Array(buf);
-  for (var i=0, strLen=str.length; i<strLen; i++) {
-    bufView[i] = str.charCodeAt(i);
-  }
-  return bufView;
-}
-
-
