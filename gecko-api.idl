@@ -1,0 +1,73 @@
+// nsIRSAJWK
+[scriptable, uuid(ec097ebf-ef9b-4e02-bd22-4a982d0c7d6c)]
+interface nsIRSAJWK : nsISupports {
+  readonly attribute DOMString alg;
+  readonly attribute DOMString n;
+  readonly attribute DOMString e;
+  readonly attribute DOMString use;
+  readonly attribute DOMString kid; // gives this API access to the underlying assumed private key
+  DOMString toJSON(); // returns base64url-encoded dot-delimited string 
+};
+
+// nsIJWEHeader
+[scriptable, uuid(4729fd53-6577-4e5b-89e6-60d80145d138)]
+interface nsIJWEHeader : nsISupports {
+  readonly DOMString alg;
+  readonly DOMString enc;
+  DOMString toJSON();
+}
+
+// nsIRSAJWEResult
+[scriptable, uuid(b5adf5df-41bb-474f-a9be-aa45b0103873)]
+interface JSONRSAWebEncryptionResult : nsISupports {
+  readonly nsIJWEHeader header;
+  readonly jsval CMK; // Content Master Key ArrayBuffer
+  readonly jsval CEK; // Content Encryption Key ArrayBuffer
+  readonly jsval CIK; // Content Integrity Key ArrayBuffer
+  readonly jsval InitVector; // Initialization vector ArrayBuffer
+  readonly jsval encryptedPlaintext; 
+  readonly jsval integrityValue; // HMAC
+  DOMString toJSON(); // returns base64-urlencoded dot-delimited string
+};
+
+// nsIJWKGeneratorCallback
+[scriptable, uuid(a3c6e0a5-f05c-48bc-b943-ffa3adcad003)]
+interface nsIJWKGeneratorCallback : nsISupports {
+   void keyPairGenFinished(in nsIRSAJWK aJWK);
+};
+
+// nsIJWKGenerator
+[scriptable, uuid(7c903c4b-1abe-40eb-bb36-92ccc2fba7e0)]
+interface nsIJWKGenerator : nsISupports {
+  void generate(in unsigned long aKeySize, 
+                in DOMString aUsage, 
+                in nsIJWKGeneratorCallback aCallback);
+};
+
+// nsIJWEncrypterCallback
+[scriptable, uuid(d8b09e08-e37d-4072-b281-c29d1059083e)]
+interface nsIJWEncrypterCallback {
+  void encryptComplete(in nsIRSAJWEResult aJWE);
+};
+
+// nsIJWEncrypter
+[scriptable, uuid(3173e3bb-f484-4c7a-bbba-3a1e993cf255)]
+interface nsIJWEncrypter {
+  void encrypt(in jsval aClearData, 
+               in nsIRSAJWK aJWK, 
+               in nsIJWEncrypterCallback aCallback);
+};
+
+// nsIJWEDecrypterCallback
+[scriptable, uuid(002e015c-6ea1-435d-b1ed-74628482a0e2)]
+interface nsIJWEDecrypterCallback {
+  void decryptComplete(in jsval aClearData);
+};
+
+// nsIJWEDecrypter
+[scriptable, uuid(934460df-b79b-45ab-a99a-d457d715c111)]
+interface nsIJWEDecrypter {
+  void decrypt(in DOMString aJWE, 
+               in DOMString aJWKID, 
+               in nsIJWEDecrypterCallback aCallback);
+};

@@ -47,10 +47,10 @@ var algorithmKeyGen = {
 };
 
 var algorithmSign = {
-  name: "RSASSA-PKCS1-v1_5",
+  name: "RSA-256",
   // AlgorithmParams
   params: {
-    hash: "SHA-256 algorithm alias"
+    // null?
   }
 };
 
@@ -229,3 +229,94 @@ cryptoKeyGen.oncomplete = function ckg_onComplete(event)
   // key store to be used
   publicKeyImporter.import();
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Assumed variables in this scope:
+// var clearDataArayBufferView = convertPlainTextToArrayBufferView("Plain Text Data");
+
+var myIV = new Uint8Array(16);
+
+var aesAlgorithmKeyGen = {
+  name: "AES-CBC",
+  params: {
+    length: 128
+  }
+};
+
+var aesAlgorithmEncrypt = {
+  name: "AES-CBC",
+  params: {
+    iv: window.crypto.getRandomValues(myIV)
+  }
+};
+
+// Create a keygenerator to produce a one-time-use AES key to encrypt some data
+var cryptoKeyGen = window.crypto.createKeyGenerator(aesAlgorithmKeyGen,
+                                                    false, // temporary
+                                                    false, // extractable
+                                                    ["encrypt"]);
+
+cryptoKeyGen.oncomplete = function ckg_onComplete(event)
+{
+  // Optionally get the keyId and key via the id:
+  // var aesKeyId = event.target.result.id; // Key id
+  // var aesKey = window.crypto.keys.getKeyByKeyId(aesKeyId);
+
+  var aesKey = event.target.result;
+
+  var aesSymmetricCryptoOp = window.crypto.createEncrypter(aesAlgorithmEncrypt, aesKey);
+  aesSymmetricCryptoOp.oncomplete = function aes_oncomplete(event)
+  {
+    // the clearData array has been encrypted
+    var cipherDataArrayBufferView = event.target.result; // ArrayBufferView
+  };
+
+  aesSymmetricCryptoOp.oninit = function aes_oninit(event)
+  {
+    aesSymmetricCryptoOp.processData(secretMessageToAlice);
+  };
+
+  aesSymmetricCryptoOp.onprogress = function aes_onprogress(event)
+  {
+    aesSymmetricCryptoOp.complete();
+  };
+
+  aesSymmetricCryptoOp.onerror = function aes_onerror(event)
+  {
+    console.error("AES encryption failed");
+  };
+
+  aesSymmetricCryptoOp.init();
+};
+
+cryptoKeyGen.generate();
+

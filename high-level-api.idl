@@ -12,7 +12,7 @@ interface HighLevel {
 
   void getPublicKey(DOMString id?);
   [TreatNonCallableAsNull] attribute Function? onGetKeypair;
-  void createKeyPair(); // ISSUE: array argument to indicate X-Domain usage?
+  void createKeyPair();
   [TreatNonCallableAsNull] attribute Function? onCreateKeypair;
 
   void encryptAndSign(ArrayBuffer clearData, DOMString publicKey);
@@ -34,6 +34,4 @@ interface HighLevel {
   void hash(ArrayBuffer data);
   [TreatNonCallableAsNull] attribute Function? onHashComplete;
   [TreatNonCallableAsNull] attribute Function? onHashError;
-
-  // TODO: MAC
 };
