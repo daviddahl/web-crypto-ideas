@@ -1,50 +1,44 @@
+///////////////////////////////////////////////////////////////////////////////
 // HighLevel API usage example JavaScript
-/////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
-// Get a "keypair" that will be generated if it does not exist:
+// Keypair handling, generation ///////////////////////////////////////////////
 
 var myCurrentKeyPair = null;
 
 function onGetKeypair(aKeypair)
 {
   localStorage.setItem(aKeypair.id, aKeypair.publicKey);
-  myCurrentKeyPair = aKeypair;
 }
 
-var cryptoAPI = window.crypto.highLevel();
+var cryptoAPI = new window.crypto.joseapi();
 cryptoAPI.onGetKeypair = onGetKeypair;
-
-cryptoAPI.getKeypair();
-
-// Create another keypair...
-
-var createdKeyPairs = [];
 
 function onCreateKeypair(aKeypair)
 {
   localStorage.setItem(aKeypair.id, aKeypair.publicKey);
-  createdKeyPairs.push(aKeypair);
+  myCurrentKeyPair = aKeypair;
 }
 
 cryptoAPI.onCreateKeypair = onCreateKeypair;
 
-cryptoAPI.createKeypair();
+cryptoAPI.createKeypair("RSA1_5");
+
+// encryption /////////////////////////////////////////////////////////////////
 
 var plainText = "June 2012 had an extra holiday shopping weekend, but registered only a 3.3% improvement over June 2011. Without an extra holiday weekend, July 2012 saw almost identical year-over-year growth; 3.4%.";
 
-function toArrayBuffer(aPlainText) { // returns an Uint8Array
-}
-
-var clearData = toArrayBuffer(plainText);
-
-function onEncryptComplete(aCipherData, aPublicKey){
+function onEncryptComplete(aJWE, aPublicKey){
+  // XXXddahl: JSMS or JWE???
   // send cipher data to the server for storage, etc...
 }
 cryptoAPI.onEncryptComplete = onEncryptComplete;
-cryptoAPI.encryptAndSign(clearData, localStorage.getItem('alicePubKey'));
+cryptoAPI.encryptAndSign(plainText, RECIPIENT_JWK, SENDER_JWK_ID);
+
+// decryption /////////////////////////////////////////////////////////////////
 
 function onDecryptComplete(aPlainText) {
-  // read and save plain text back to localStorage/IndexedDB
+  // read and save plain text
 }
 
 function onDecryptError(aException) {
@@ -56,6 +50,34 @@ cryptoAPI.onDecryptError = onDecryptError;
 // set the event handler
 cryptoAPI.onDecryptComplete = onDecryptComplete;
 // verfiy and decrypt - if verification or decryption fails, onDecryptError is fired
-cryptoAPI.decryptAndVerify(cipherMessage);
+cryptoAPI.verifyAndDecrypt(RECEIVED_JWE, SENDER_JWK, RECIPIENT_JWK_ID);
 
-// TODO: sign, verify, hash, MAC
+// sign ///////////////////////////////////////////////////////////////////////
+
+var dataToSign = "This is some data to sign";
+
+cryptoAPI.onSignComplete = function (aJWS) {
+  // send the signature to the server, etc.
+};
+
+cryptoAPI.onSignError = function (aError) {
+  // console.log(), etc.
+};
+
+cryptoAPI.sign(dataToSign, JWK_ID);
+
+// verify /////////////////////////////////////////////////////////////////////
+
+cryptoAPI.onVerifyComplete = function (aVerified) {
+  // aVerified is a boolean
+};
+
+cryptoAPI.onVerifyError = function (aError) {
+  // console.log(), etc.
+};
+
+cryptoAPI.verify(RECEIVED_JWS, SIGNER_JWK);
+
+// hash ///////////////////////////////////////////////////////////////////////
+// TBD
+

@@ -1,37 +1,46 @@
-
 [NoInterfaceObject]
 interface publicKey {
-  readonly attribute DOMString publicKey; // use with High-Level API
+  readonly attribute DOMString jwk; // JSON Web Key
   readonly attribute DOMString id;
-  Key getPublicKey(); // use with Low-level API?
   // The publicKey always implies a private key is bound to it behind the scenes
 };
 
 [NoInterfaceObject]
-interface HighLevel {
+interface JOSEAPI {
 
-  void getPublicKey(DOMString id?);
+  void getPublicKey(DOMString aJWKID);
   [TreatNonCallableAsNull] attribute Function? onGetKeypair;
-  void createKeyPair();
+  void createKeyPair(DOMString aJoseAlgID);
   [TreatNonCallableAsNull] attribute Function? onCreateKeypair;
 
-  void encryptAndSign(ArrayBuffer clearData, DOMString publicKey);
+  void encryptAndSign(ArrayBuffer aClearData, 
+                      DOMString aRecipientJWK,
+                      DOMString aSenderJWKID);
+
   [TreatNonCallableAsNull] attribute Function? onEncryptComplete;
   [TreatNonCallableAsNull] attribute Function? onEncryptError;
 
-  void verifyAndDecrypt(ArrayBuffer cipherData, DOMString publicKeyID);
+  // XXXddahl: JWE or JSMS??
+
+  void verifyAndDecrypt(DOMString aReceivedJWE, 
+                        DOMString aSenderJWK, 
+                        DOMString aRecipientJWKID);
+
   [TreatNonCallableAsNull] attribute Function? onDecryptComplete;
   [TreatNonCallableAsNull] attribute Function? onDecryptError;
 
-  void sign(ArrayBuffer clearData, DOMString publicKeyID);
+  void sign(aDOMString aClearData, DOMString aJWKID);
+
   [TreatNonCallableAsNull] attribute Function? onSignComplete;
   [TreatNonCallableAsNull] attribute Function? onSignError;
 
-  void verify(ArrayBuffer signature, ArrayBuffer data, DOMString publicKey);
+  void verify(DOMString aJWS, DOMString aDataToVerify, DOMString aJWK);
+
   [TreatNonCallableAsNull] attribute Function? onSignComplete;
   [TreatNonCallableAsNull] attribute Function? onSignError;
 
-  void hash(ArrayBuffer data);
+  void hash(DOMString aData);
+
   [TreatNonCallableAsNull] attribute Function? onHashComplete;
   [TreatNonCallableAsNull] attribute Function? onHashError;
 };
